@@ -12,6 +12,7 @@ export class ResourceLoader{
     for(let [key,val] of this.map){
       // console.log(key,val);
       const image = new Image();
+      // const image = wx.createImage();
       image.src = val;
       this.map.set(key,image); // 替换原来的值
     }
