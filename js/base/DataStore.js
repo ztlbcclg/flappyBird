@@ -41,7 +41,7 @@ export class DataStore{
   /**
    * 游戏结束时,销毁上一局的数据
    */
-  destory(){
+  destroy(){
     for(let val of this.map.values()){
       val = null;
     }

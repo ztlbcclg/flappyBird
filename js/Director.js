@@ -15,8 +15,8 @@ export class Director{
   }
   // 创建水管组的方法
   createPipes(){
-    const minTop = this.dataStore.canvas.height/8;
-    const maxTop = this.dataStore.canvas.height/2;
+    const minTop=this.dataStore.canvas.height/8;
+    const maxTop=this.dataStore.canvas.height/2;
     const top = Math.random()*(maxTop-minTop)+minTop;
     this.dataStore.get('pipes').push(new UpPipe(top));
     this.dataStore.get('pipes').push(new DownPipe(top));
@@ -29,17 +29,18 @@ export class Director{
     }
     this.dataStore.get('birds').time = 0;
   }
-  
+
   // 判断小鸟与某个水管的撞击情况
   isStrike(bird,pipe){
-    if(bird.right<pipe.left ||
-      bird.left>pipe.right ||
-      bird.top>pipe.bottom ||
-      bird.bottom<pipe.top
+    
+    if(bird.right < pipe.left ||
+      bird.left > pipe.right ||
+      bird.top > pipe.bottom ||
+      bird.bottom < pipe.top
       ){
         return false;
-      }
-      return true;
+    }
+    return true;
   }
 
   // 判断游戏结束的情况
@@ -47,6 +48,7 @@ export class Director{
     const birds = this.dataStore.get('birds');
     const land = this.dataStore.get('land');
     const pipes = this.dataStore.get('pipes');
+    const score = this.dataStore.get('score');
 
     // 小鸟撞天撞地
     if(birds.birdsY[0]<0||birds.birdsY[0]+birds.birdsHeight[0]>land.y){
@@ -76,7 +78,13 @@ export class Director{
         return ;
       }
     }
-  
+
+    // 加分: 小鸟的左边大于水管的右边且处于加分的状态
+    if (birds.birdsX[0]>pipes[0].x+pipes[0].width && score.canAdd){
+      score.canAdd = false; // 关闭加分
+      score.scoreNum++;
+    }
+
   }
 
   // 程序运行的方法
@@ -85,33 +93,50 @@ export class Director{
     if(!this.isGameOver){
       this.dataStore.get('background').draw();
     
-    // 获取水管组
-    const pipes = this.dataStore.get('pipes');
-    // 判断,添加水管
-    // 水管超过界面的一半
-    if( pipes[0].x<(this.dataStore.canvas.width/2-pipes[0].width) && pipes.length==2 ){
-      this.createPipes();
-    }
-    // 删除过界的水管
-    if(pipes[0].x+pipes[0].width<0 && pipes.length==4){
-      pipes.shift();
-      pipes.shift();
-    }
+      // 获取水管组
+      const pipes = this.dataStore.get('pipes');
+      // 判断,添加水管
+      // 水管超过界面的一半
+      if( pipes[0].x<(this.dataStore.canvas.width/2-pipes[0].width) && pipes.length==2 ){
+        this.createPipes();
+      }
+      // 删除过界的水管
+      if(pipes[0].x+pipes[0].width<0 && pipes.length==4){
+        pipes.shift();
+        pipes.shift();
+        // 开启加分
+        this.dataStore.get('score').canAdd = true;
+      }
 
-    // 遍历pipes,并画图
-    pipes.forEach(p=>{
-      p.draw();
-    });
+      // 遍历pipes,并画图
+      pipes.forEach(p=>{
+        p.draw();
+      });
 
-    this.dataStore.get('birds').draw();
+      this.dataStore.get('birds').draw();
 
-    this.dataStore.get('land').draw();
+      this.dataStore.get('score').draw();
 
-    this.id = requestAnimationFrame(()=>this.run());
-    // cancelAnimationFrame()
+      this.dataStore.get('land').draw();
+      this.id = requestAnimationFrame(()=>this.run());
+      // cancelAnimationFrame()
     }else{
       // 游戏结束
-      alert("游戏结束");
+      // alert("游戏结束")
+      // 重绘各个图片,解决手机端花屏的问题
+      this.dataStore.get('background').draw();
+      this.dataStore.get('pipes').forEach(p => {
+        p.draw();
+      });
+      this.dataStore.get('birds').draw();
+      this.dataStore.get('score').draw();
+      this.dataStore.get('land').draw();
+      this.dataStore.get('startButton').draw();
+
+      // 清除id
+      cancelAnimationFrame(this.id);
+      // 清除上一把游戏中的数据
+      this.dataStore.destroy();
     }
     
   }
